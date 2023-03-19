@@ -10,13 +10,13 @@ What is lacking is a comprehensive guide. This is exactly the need that I want t
 1. [Event Loop](#event-loop)
    1. [Tasks, Ticks, and Web API](#tasks-ticks-and-web-api)
    2. [Task Queue](#task-queue)
-   3. [16.6 milliseconds per task](#16-6-milliseconds-per-task)
+   3. [16.6 milliseconds per task](#166-milliseconds-per-task)
    4. [Handling large tasks](#handling-large-tasks)
    5. [Microtasks](#microtasks)
    6. [requestAnimationFrame](#requestanimationframe)
    7. [requestIdleCallback](#requestidlecallback)
    8. [Comparison of queues](#comparison-of-queues)
-   9. [Event loop in Node.js](#event-loop-in-node-js)
+   9. [Event loop in Node.js](#event-loop-in-nodejs)
 
 ## Event Loop
 To run a website, the browser allocates a single thread that must simultaneously 
@@ -25,11 +25,8 @@ a single thread can only perform one action at a time. Therefore, the thread per
 these tasks sequentially to create the illusion of parallel execution. 
 This is the event loop.
 
-![img.png](event_loop.png)
-<figcaption align="center">
-<i>Event Loop: Executing Code and Updating the Interface</i>
-</figcaption>
-<br/>
+![](event_loop.png)
+*Event Loop: Executing Code and Updating the Interface*
 
 
 The call stack is where code execution takes place. When a function calls another function, its own execution is paused until the called function completes, forming a call stack. Once all the operations in the stack are executed and it becomes empty, the event loop can either add more code to the stack for execution or update the user interface.
