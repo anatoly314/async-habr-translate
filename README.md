@@ -61,7 +61,7 @@ The call stack will execute both the developer-written code and the default buil
 </figcaption>
 <br />
 
-[Back to top](#table-of-contents)
+[🔼](#table-of-contents)
 
 ### Tasks, Ticks, and Web API
 
@@ -93,7 +93,7 @@ The browser subsystem responsible for network operations will execute the reques
 
 There may be multiple tasks ready for execution after asynchronous calls. Therefore, a special queue exists to transfer them to the call stack for execution.
 
-[Back to top](#table-of-contents)
+[🔼](#table-of-contents)
 
 ### Task Queue
 
@@ -123,7 +123,7 @@ document.body.addEventListener('click', () => {
 })
 ```
 
-[Back to top](#table-of-contents)
+[🔼](#table-of-contents)
 
 ### 16.6 milliseconds per task
 
@@ -133,7 +133,7 @@ Typically, monitors refresh the image at a rate of 60 frames per second, so the 
 
 For most scenarios, 16.6 milliseconds is quite sufficient. However, sometimes heavy computations are required on the client side, which may take much more time. There are special techniques for such cases.
 
-[Back to top](#table-of-contents)
+[🔼](#table-of-contents)
 
 ### Handling large tasks
 
@@ -171,7 +171,7 @@ If the calculation data is needed within other tabs from the same origin, you ca
 
 Aside from web workers, there is another, less obvious way to create a separate thread – opening a window or frame on a different domain to violate the same-origin policy. Then the window or frame will have its own independent event loop, which can perform some work and interact with the main window, just like a web worker, using the postMessage mechanism. This is quite a specific behavior that may look different in different browsers. You can test it, for example, using a [demo from Stack Overflow](https://stackoverflow.com/questions/11510483/will-a-browser-give-an-iframe-a-separate-thread-for-javascript).
 
-[Back to top](#table-of-contents)
+[🔼](#table-of-contents)
 
 ### Microtasks
 
@@ -241,7 +241,7 @@ setTimeout(() => {
 There is a wonderful visual site, [JavaScript Visualizer 9000](https://www.jsv9000.app/), where you can explore in more detail how task queues and microtask queues work. 
 Additionally, I recommend a good article [JavaScript Visualized: Promises & Async/Await](https://dev.to/lydiahallie/javascript-visualized-promises-async-await-5gke) that explains promises.
 
-[Back to top](#table-of-contents)
+[🔼](#table-of-contents)
 
 ### requestAnimationFrame
 
@@ -295,7 +295,7 @@ setTimeout(() => {
 ```
 There is [a small but useful article](https://flaviocopes.com/requestanimationframe/) on the topic of requestAnimationFrame in Flavio Copes’ blog.
 
-[Back to top](#table-of-contents)
+[🔼](#table-of-contents)
 
 ### requestIdleCallback
 
@@ -322,7 +322,7 @@ Similar to requestAnimationFrame, to regularly add a task to the queue, you will
 
 In contrast to the other queues discussed earlier, requestIdleCallback is still partly an experimental API, with support [missing in Safari](https://caniuse.com/?search=cancelIdleCallback). In addition, this function has a [number of limitations](https://developer.mozilla.org/en-US/docs/Web/API/Background_Tasks_API#getting_the_most_out_of_idle_callbacks), making it convenient to use only for small non-priority tasks without interaction with the DOM, for example, for sending analytical data. You can read more about requestIdleCallback in Paul Lewis’s material [“Using requestIdleCallback”](https://developer.chrome.com/blog/using-requestidlecallback/).
 
-[Back to top](#table-of-contents)
+[🔼](#table-of-contents)
 
 ### Comparison of queues
 
@@ -340,7 +340,7 @@ Interaction with queues occurs through:
  - microtasks - promises, asynchronous functions, Observer API, queueMicrotask; 
  - requestAnimationFrame, requestIdleCallback - corresponding API calls.
 
-[Back to top](#table-of-contents)
+[🔼](#table-of-contents)
 
 ### Event loop in Node.js
 
