@@ -9,6 +9,14 @@ What is lacking is a comprehensive guide. This is exactly the need that I want t
 # Table of Contents
 1. [Event Loop](#event-loop)
    1. [Tasks, Ticks, and Web API](#tasks-ticks-and-web-api)
+   2. [Task Queue](#task-queue)
+   3. [16.6 milliseconds per task](#16-6-milliseconds-per-task)
+   4. [Handling large tasks](#handling-large-tasks)
+   5. [Microtasks](#microtasks)
+   6. [requestAnimationFrame](#requestanimationframe)
+   7. [requestIdleCallback](#requestidlecallback)
+   8. [Comparison of queues](#comparison-of-queues)
+   9. [Event loop in Node.js](#event-loop-in-node-js)
 
 ## Event Loop
 To run a website, the browser allocates a single thread that must simultaneously 
