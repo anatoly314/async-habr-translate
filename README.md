@@ -61,6 +61,8 @@ The call stack will execute both the developer-written code and the default buil
 </figcaption>
 <br />
 
+[Back to top](#table-of-contents)
+
 ### Tasks, Ticks, and Web API
 
 A task is JavaScript code that executes in the call stack. A tick is the execution of a task in the call stack. Web API refers to properties and methods in the global Window object.
@@ -91,6 +93,8 @@ The browser subsystem responsible for network operations will execute the reques
 
 There may be multiple tasks ready for execution after asynchronous calls. Therefore, a special queue exists to transfer them to the call stack for execution.
 
+[Back to top](#table-of-contents)
+
 ### Task Queue
 
 Tasks enter the queue through the asynchronous browser API. First, an asynchronous operation is performed somewhere in a separate thread, and after its completion, a task ready for execution is added to the call stack.
@@ -119,6 +123,8 @@ document.body.addEventListener('click', () => {
 })
 ```
 
+[Back to top](#table-of-contents)
+
 ### 16.6 milliseconds per task
 
 To make websites fast and responsive, the browser needs to create the illusion that it is simultaneously executing user code and updating the interface. However, since the event loop operates strictly sequentially, the browser has to quickly switch between tasks so the user doesn’t notice anything.
@@ -126,6 +132,8 @@ To make websites fast and responsive, the browser needs to create the illusion t
 Typically, monitors refresh the image at a rate of 60 frames per second, so the event loop tries to execute code and update the interface at the same speed, which means a task takes 16.6 milliseconds to complete. If our code runs faster, the browser will simply update the display more frequently. But if the code runs slowly, the frame rate will start to decrease, and the user will feel like the website is lagging.
 
 For most scenarios, 16.6 milliseconds is quite sufficient. However, sometimes heavy computations are required on the client side, which may take much more time. There are special techniques for such cases.
+
+[Back to top](#table-of-contents)
 
 ### Handling large tasks
 
@@ -162,6 +170,8 @@ A separate thread is created for the web worker, where calculations will take pl
 If the calculation data is needed within other tabs from the same origin, you can use a SharedWorker instead of a regular worker. Additionally, for some tasks, a ServiceWorker might be useful, but that’s another story. You can read more about workers, for example, [here](https://dev.to/jennieji/introduction-to-workers-and-why-we-should-use-them-3mn3).
 
 Aside from web workers, there is another, less obvious way to create a separate thread – opening a window or frame on a different domain to violate the same-origin policy. Then the window or frame will have its own independent event loop, which can perform some work and interact with the main window, just like a web worker, using the postMessage mechanism. This is quite a specific behavior that may look different in different browsers. You can test it, for example, using a [demo from Stack Overflow](https://stackoverflow.com/questions/11510483/will-a-browser-give-an-iframe-a-separate-thread-for-javascript).
+
+[Back to top](#table-of-contents)
 
 ### Microtasks
 
@@ -231,6 +241,8 @@ setTimeout(() => {
 There is a wonderful visual site, [JavaScript Visualizer 9000](https://www.jsv9000.app/), where you can explore in more detail how task queues and microtask queues work. 
 Additionally, I recommend a good article [JavaScript Visualized: Promises & Async/Await](https://dev.to/lydiahallie/javascript-visualized-promises-async-await-5gke) that explains promises.
 
+[Back to top](#table-of-contents)
+
 ### requestAnimationFrame
 
 requestAnimationFrame (or abbreviated as rAF) allows you to execute JavaScript code right before updating the interface. Emulating such behavior with other methods, like timers, is almost impossible.
@@ -283,6 +295,8 @@ setTimeout(() => {
 ```
 There is [a small but useful article](https://flaviocopes.com/requestanimationframe/) on the topic of requestAnimationFrame in Flavio Copes’ blog.
 
+[Back to top](#table-of-contents)
+
 ### requestIdleCallback
 
 requestIdleCallback (or abbreviated as rIC) adds tasks to yet another (fourth) queue, which will be executed during the browser’s idle period when there are no more priority tasks from other queues.
@@ -308,6 +322,8 @@ Similar to requestAnimationFrame, to regularly add a task to the queue, you will
 
 In contrast to the other queues discussed earlier, requestIdleCallback is still partly an experimental API, with support [missing in Safari](https://caniuse.com/?search=cancelIdleCallback). In addition, this function has a [number of limitations](https://developer.mozilla.org/en-US/docs/Web/API/Background_Tasks_API#getting_the_most_out_of_idle_callbacks), making it convenient to use only for small non-priority tasks without interaction with the DOM, for example, for sending analytical data. You can read more about requestIdleCallback in Paul Lewis’s material [“Using requestIdleCallback”](https://developer.chrome.com/blog/using-requestidlecallback/).
 
+[Back to top](#table-of-contents)
+
 ### Comparison of queues
 
 **The microtask queue** is the highest priority queue, with code execution starting from it. The browser continues to work with this queue until there are tasks in it, no matter how long it takes.
@@ -323,6 +339,8 @@ Interaction with queues occurs through:
  - tasks - timers, events (including postMessage processing); 
  - microtasks - promises, asynchronous functions, Observer API, queueMicrotask; 
  - requestAnimationFrame, requestIdleCallback - corresponding API calls.
+
+[Back to top](#table-of-contents)
 
 ### Event loop in Node.js
 
