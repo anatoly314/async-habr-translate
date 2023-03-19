@@ -25,8 +25,10 @@ a single thread can only perform one action at a time. Therefore, the thread per
 these tasks sequentially to create the illusion of parallel execution. 
 This is the event loop.
 
-![](event_loop.png)
-*Event Loop: Executing Code and Updating the Interface*
+<figure>
+  <img src="event_loop.png"/>
+  <figcaption>Event Loop: Executing Code and Updating the Interface.</figcaption>
+</figure>
 
 
 The call stack is where code execution takes place. When a function calls another function, its own execution is paused until the called function completes, forming a call stack. Once all the operations in the stack are executed and it becomes empty, the event loop can either add more code to the stack for execution or update the user interface.
