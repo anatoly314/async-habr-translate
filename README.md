@@ -17,6 +17,11 @@ What is lacking is a comprehensive guide. This is exactly the need that I want t
    7. [requestIdleCallback](#requestidlecallback)
    8. [Comparison of queues](#comparison-of-queues)
    9. [Event loop in Node.js](#event-loop-in-nodejs)
+2. [Callback Functions](#callback-functions)
+   1. [Callback Hell](#callback-hell)
+   2. [Don't Release Zalgo](#dont-release-zalgo)
+   3. [Tight Coupling](#tight-coupling)
+   4. [The Trust Issue](#the-trust-issue)
 
 ## Event Loop
 To run a website, the browser allocates a single thread that must simultaneously 
@@ -345,6 +350,87 @@ Interaction with queues occurs through:
 In Node.js, the event loop works in a similar way: first, a task is executed, then you need to look into the queue for the next one. However, the set of queues is different, and there are no stages related to updating the interface because the code runs on the server. You can read more about event loops in Node.js in a [series of articles written by Deepal Jayasekara](https://blog.insiderattack.net/event-loop-and-the-big-picture-nodejs-event-loop-part-1-1cb67a182810). For a quick understanding of `setImmediate` and `process.nextTick`, there is a [good explanation on Stack Overflow](https://stackoverflow.com/questions/55467033/difference-between-process-nexttick-and-queuemicrotask/57325561#57325561).
 
 
+## Callback Functions
+
+This is a convenient and simple way to interact with asynchronous APIs, but if not handled carefully, many problems can arise.
+
+### Callback Hell
+
+**Callback hell** is the most common issue mentioned when discussing the drawbacks of callback functions.
+
+The sequence of asynchronous calls using callback functions becomes similar to the **pyramid of doom**.
+
+```javascript
+fetchToken(url, (token) => {
+    fetchUser(token, (user) => {
+        fetchRole(user, (role) => {
+            fetchAccess(role, (access) => {
+                fetchReport(access, (report) => {
+                    fetchContent(report, (content) => {
+                        // Welcome to Callback Hell
+                    })
+                })
+            })
+        })
+    })
+})
+```
+One might think that this is the main drawback of callback functions, but the problems with them are just beginning.
+
+### Don't Release Zalgo
+
+The thing is, you can't initially determine how exactly a callback function will be called—synchronously or asynchronously, and the logic of our code can strongly depend on this. To be sure, you will have to read the implementation of the function. This requires additional actions and complicates debugging.
+
+```javascript
+syncOrAsync(() => {
+// how is the code executed?
+})
+
+// synchronous implementation
+function syncOrAsync(callback) {
+    callback()
+}
+
+// asynchronous implementation
+function syncOrAsync(callback) {
+    queueMicrotask(callback)
+}
+```
+In niche circles, this problem is widely known as the Zalgo monster issue, which is better not to release.
+
+### Tight Coupling
+
+Tight coupling is the issue of one part of the code depending on another when handling sequential asynchronous operations:
+```javascript
+firstStep((error, data) => {
+   if (error) {
+       // cancel step #1
+   }
+   secondStep((error, data) => {
+      if (error) {
+          // cancel step #2, then #1
+      }
+   })
+})
+```
+
+If an error occurs in step #1, only it needs to be handled. But if an error occurs in step #2, you'll have to cancel step #2 and then step #1 as well. The more steps there are, the more problems there will be when handling errors.
+
+### The Trust Issue
+
+Inversion of control is passing our code to a library written by other developers:
+
+```javascript
+import { thirdPartyCode } from 'third-party-package'
+
+thirdPartyCode(() => {
+    // inversion of control
+})
+```
+
+We rely on our task being called as it should, but everything may not go as expected. Another library might call the function too early or too late, do it too frequently or rarely, swallow errors and exceptions, pass incorrect arguments, or not call our function at all.
+
+Based on what's been said, one might think that working with asynchrony through callback functions is full of challenges. To some extent, that's true, but fortunately, **promises** help to deal with all these problems.
 
 
 
