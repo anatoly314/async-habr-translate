@@ -22,6 +22,20 @@ What is lacking is a comprehensive guide. This is exactly the need that I want t
    2. [Don't Release Zalgo](#dont-release-zalgo)
    3. [Tight Coupling](#tight-coupling)
    4. [The Trust Issue](#the-trust-issue)
+3. [Promises](#promises)
+   1. [Promise chains and error propagation](#promise-chains-and-error-propagation)
+   2. [Implicit behavior](#implicit-behavior)
+      1. [Returning a new promise](#returning-a-new-promise)
+      2. [Hidden try/catch](#hidden-trycatch)
+   3. [Thenable objects](#thenable-objects)
+   4. [Static methods](#static-methods)
+      1. [Promise.all](#promiseall)
+      2. [Promise.race](#promiserace)
+      3. [Promise.any](#promiseany)
+      4. [Promise.allSettled](#promiseallsettled)
+   5. [Promisification](#promisification)
+   6. [Promises or callback functions?](#promises-or-callback-functions)
+   7. [Coroutines](#coroutines)
 
 ## Event Loop
 To run a website, the browser allocates a single thread that must simultaneously 
@@ -431,6 +445,544 @@ thirdPartyCode(() => {
 We rely on our task being called as it should, but everything may not go as expected. Another library might call the function too early or too late, do it too frequently or rarely, swallow errors and exceptions, pass incorrect arguments, or not call our function at all.
 
 Based on what's been said, one might think that working with asynchrony through callback functions is full of challenges. To some extent, that's true, but fortunately, **promises** help to deal with all these problems.
+
+
+## Promises
+
+Promises are like order numbers at a restaurant. When we place an order, instead of food, we receive an order number. There are two possible scenarios: first, the order will be successfully prepared and served at the pick-up counter after some time; second, something could go wrong, such as running out of ingredients, and the restaurant employee will inform us that they cannot fulfill our order and will offer a refund or an alternative.
+
+Promises are created through the Promise constructor, which must be called with new. The constructor takes only one argument: a callback function with two parameters, resolve and reject. Inside the Promise, an asynchronous operation is performed with the callback function. In turn, inside this function, either resolve or reject is called, setting the Promise to either a fulfilled or rejected state, respectively.
+
+This is how a Promise can be set to either fulfilled or rejected:
+
+```javascript
+// set Promise to fulfilled
+const resolvedPromise = new Promise((resolve, reject) => {
+    setTimeout(() => { resolve('^_^') }, 1000)
+})
+
+// set Promise to rejected
+const rejectedPromise = new Promise((resolve, reject) => {
+    setTimeout(() => { reject('O_o') }, 1000)
+})
+```
+After a Promise is set, the result can be obtained through the then method:
+
+```javascript
+resolvedPromise.then((value) => {
+    console.log(value) // ^_^
+})
+```
+A rejection can be handled either through the second parameter in then or through catch:
+
+```javascript
+rejectedPromise.then(
+   (value) => {
+       // ... ignored
+   },
+   (error) => {
+       console.log(error) // O_o
+   }
+)
+
+rejectedPromise.catch((error) => {
+    console.log(error) // O_o
+})
+```
+
+The value of a Promise is set once and cannot be changed:
+
+```javascript
+const promise = new Promise((resolve, reject) => {
+   resolve('^_^')
+   reject('O_o') // will not affect the state of the Promise
+})
+
+promise.then((value) => {
+    console.log(value) // ^_^
+})
+
+promise.then((value) => {
+    console.log(value) // ^_^
+})
+```
+
+For convenience, you can use the static methods, the Promise.resolve and Promise.reject constructor functions, which create an already-set Promise:
+```javascript
+Promise.resolve('^^').then((value) => {
+    console.log(value) // ^^
+})
+
+Promise.reject('O_o').catch((error) => {
+    console.log(error) // O_o
+})
+```
+Promises also have a finally method, which does something regardless of success or failure. This is similar to baking a dish in an oven: whether the dish burns or not, the oven still needs to be turned off.
+```javascript
+Promise.resolve('^^').finally(() => {
+    // do something
+}).then((value) => {
+    console.log(value) // ^^
+})
+
+Promise.reject('O_o').finally(() => {
+    // do something
+}).catch((error) => {
+    console.log(error) // O_o
+})
+```
+
+### Promise chains and error propagation
+
+The main benefit of promises is that we can build chains of asynchronous operations with them:
+
+```javascript
+Promise.resolve('^')
+    .then((value) => {
+        return value + '_'
+    })
+    .then((value) => {
+        return value + '^'
+    })
+    .then((value) => {
+        console.log(value) // ^_^
+    })
+```
+
+If an error occurs somewhere, the rejection will skip the fulfillment handlers and reach the nearest rejection handler, after which the chain will continue to operate normally:
+```javascript
+Promise.resolve()
+   .then(() => {
+       return Promise.reject('O_o')
+   })
+   .then(() => {
+       // all fulfillment handlers will be skipped
+   })
+   .catch((error) => {
+       console.log(error) // O_o
+   })
+   .then(() => {
+       // continue to execute the chain normally
+   })
+```
+You can also return a value inside catch, and it will be processed in the chain just the same:
+
+```javascript
+Promise.reject('O_o')
+    .catch((error) => {
+        console.log(error) // O_o
+        return '^_^'
+    })
+    .then((value) => {
+        console.log(value) // ^_^
+    })
+```
+If the chain ends and the error remains unhandled, the unhandledPromiseRejection event will be triggered, which you can subscribe to in order to track unhandled errors inside promises:
+```javascript
+window.addEventListener('unhandledrejection', (event) => {
+   console.log('Unhandled Promise error. Shame on you!')
+   console.log(event) // PromiseRejectionEvent
+   console.log(event.reason) // O_o
+})
+```
+It's important to understand that error handling only works when the chain is uninterrupted. If you omit the return statement and create a promise set to reject, the subsequent catch won't be able to handle it:
+```javascript
+Promise.resolve()
+   .then(() => {
+       Promise.reject('O_o')
+   })
+   .catch(() => {
+      // will be skipped because return is not specified
+      // UnhandledPromiseRejection will be thrown
+   })
+```
+
+### Implicit behavior
+
+Promises have two implicit features. First, the then and catch methods always return a new promise. Second, they internally catch any errors and, if something goes wrong, return a promise set to reject with the reason for the error.
+
+#### Returning a new promise
+
+Each call to then or catch creates a new promise, the value of which is either undefined or explicitly set via return.
+
+Thanks to this, instead of creating temporary variables, you can immediately make a convenient chain of calls:
+
+```javascript
+// you can do it like this:
+const one = Promise.resolve('^')
+
+const two = one.then((value) => {
+    return value + '_'
+})
+
+const three = two.then((value) => {
+    return value + '^'
+})
+
+three.then((value) => {
+    console.log(value) // ^_^
+})
+
+// but this is much better:
+Promise.resolve('^')
+   .then((value) => {
+       return value + ''
+   })
+   .then((value) => {
+       return value + '^'
+   })
+   .then((value) => {
+       console.log(value) // ^^
+   })
+```
+
+At the same time, if you return a promise, its value will be unwrapped, and everything will work exactly the same.
+```javascript
+Promise.resolve()
+   .then(() => {
+       return Promise.resolve('^^')
+   })
+   .then((value) => {
+       console.log(value) // ^^
+   })
+```
+Because of this, you can avoid nested promises and always write code with a single level of nesting:
+```javascript
+// you can do it like this:
+Promise.resolve('^')
+    .then((value) => {
+        return Promise.resolve(value + '_')
+            .then((value) => {
+                return Promise.resolve(value + '^')
+                    .then((value) => {
+                        console.log(value) // ^_^
+                    })
+            })
+    })
+
+// but this is much better:
+Promise.resolve('^')
+    .then((value) => {
+        return Promise.resolve(value + '_')
+    })
+    .then((value) => {
+        return Promise.resolve(value + '^')
+    })
+    .then((value) => {
+        console.log(value) // ^_^
+    })
+```
+
+#### Hidden try/catch
+
+Another feature of promises is related to error handling. Callback functions passed to promise methods are wrapped in try/catch. If something goes wrong, the try/catch will catch the error and set it as the reason for the promise's rejection:
+```javascript
+Promise.resolve()
+.then(() => {
+    undefined.toString()
+})
+.catch((error) => {
+    console.log(error) // TypeError: Cannot read property 'toString' of undefined
+})
+```
+This is the same as manually writing this code:
+
+```javascript
+Promise.resolve()
+    .then(() => {
+        try {
+            undefined.toString()
+        } catch (error) {
+            return Promise.reject(error)
+        }
+    })
+    .catch((error) => {
+        console.log(error) // TypeError: Cannot read property 'toString' of undefined
+    })
+```
+Thus, within promises, you can do without try/catch because promises will do it for us. The main thing is to properly handle the reason for rejection in catch.
+
+### Thenable objects
+
+These are objects that have a then method:
+
+```javascript
+const thenable = {
+    then (fulfill) {
+        fulfill('@_@')
+    }
+}
+```
+Most likely, these are promise polyfills before ES6. Promises will unwrap such objects and then wrap them in full-fledged ES6 promises. This is how resolve, Promise.resolve, then, and catch work.
+```javascript
+Promise.resolve(thenable)
+    .then((value) => {
+        console.log(value) // @_@
+    })
+
+new Promise((resolve) => {
+    resolve(thenable)
+}).then((value) => {
+    console.log(value) // @_@
+})
+
+Promise.resolve()
+    .then(() => {
+        return thenable
+    })
+    .then((value) => {
+        console.log(value) // @_@
+    })
+```
+Thanks to this, compatibility with code written before ES6 is ensured:
+
+```javascript
+const awesomeES6Promise = Promise.resolve(thenable)
+awesomeES6Promise.then((value) => {
+    console.log(value) // @_@
+})
+```
+There is one peculiarity: if you pass a regular promise to Promise.resolve, it will not be unwrapped and will be returned unchanged. At the same time, resolve, then, and catch will unwrap the value and create a new promise.
+
+```javascript
+const thenable = {
+    then (fulfill) {
+        fulfill('@_@')
+    }
+}
+
+const promise = Promise.resolve('@_@')
+
+const resolvedThenable = Promise.resolve(thenable)
+const resolvedPromise = Promise.resolve(promise)
+
+console.log(thenable === resolvedThenable) // false
+console.log(promise === resolvedPromise) // true
+```
+But the most interesting part is the behavior of reject and Promise.reject, which work completely differently. If you pass any object to them, including a promise, they will simply return it as the reason for rejection:
+
+```javascript
+const promise = Promise.resolve('@_@')
+
+Promise.reject(promise)
+    .catch((value) => {
+        console.log(value) // Promise {<fulfilled>: "@_@"}
+    })
+```
+
+### Static methods
+
+Promises have six useful static methods. We have already covered two of them - Promise.resolve and Promise.reject. Let's take a look at the other four.
+
+For clarity, let's write a function that will help us get a settled promise after a certain time:
+```javascript
+const setPromise = (value, ms, isRejected = false) =>
+    new Promise((resolve, reject) =>
+        setTimeout(() => isRejected ? reject(value) : resolve(value), ms))
+```
+All four methods we will cover below accept an array of values. However, each of these methods works differently, and they return different results.
+
+#### Promise.all
+
+This call returns an array of values or the first rejection:
+
+```javascript
+Promise.all([
+    setPromise('^_^', 400),
+    setPromise('^_^', 200),
+]).then((result) => {
+    console.log(result) // [ "^_^", "^_^" ]
+})
+```
+If at least one promise fails, instead of an array of values, the reason for rejection will be sent to catch:
+```javascript
+Promise.all([
+    setPromise('^_^', 400),
+    setPromise('O_o', 200, true),
+]).catch((error) => {
+    console.log(error) // O_o
+})
+```
+For an empty array, an empty result is returned immediately:
+
+```javascript
+Promise.all([])
+    .then((result) => {
+        console.log(result) // []
+    })
+```
+
+#### Promise.race
+
+This method returns the first value or the first rejection:
+```javascript
+Promise.race([
+    setPromise('^_^', 100),
+    setPromise('O_o', 200, true),
+]).then((result) => {
+    console.log(result) // ^_^
+})
+```
+If the rejection occurs first, then race will be set to rejection:
+
+```javascript
+Promise.race([
+    setPromise('^_^', 400),
+    setPromise('O_o', 200, true),
+]).catch((error) => {
+    console.log(error) // O_o
+})
+```
+
+If you pass an empty array to Promise.race, the promise will be stuck in a pending state and will not be set to either fulfillment or rejection:
+
+```javascript
+Promise.race([])
+    .then(() => {
+        console.log('resolve не выполнится никогда')
+    }).catch(() => {
+        console.log('reject тоже')
+    })
+```
+
+#### Promise.any
+
+The call returns the first value or an array of rejection reasons if none of the promises were successful:
+
+```javascript
+Promise.any([
+    setPromise('^_^', 400),
+    setPromise('O_o', 200, true),
+]).then((result) => {
+    console.log(result) // ^_^
+})
+```
+When all promises are set to rejection, any will return an error object, in which you can extract information about the rejections from the errors field:
+```javascript
+Promise.any([
+    setPromise('O_o', 400, true),
+    setPromise('O_o', 200, true),
+]).catch((result) => {
+    console.log(result.message) // All promises were rejected
+    console.log(result.errors) // [ "O_o", "O_o" ]
+})
+```
+For an empty array, an error will be returned:
+
+```javascript
+Promise.any([])
+    .catch((error) => {
+        console.log(error.message) // All promises were rejected
+    })
+```
+
+#### Promise.allSettled
+
+The method will wait for all promises to be completed and return an array of special objects:
+
+```javascript
+Promise.allSettled([
+    setPromise('^_^', 400),
+    setPromise('O_o', 200, true),
+]).then(([resolved, rejected]) => {
+    console.log(resolved) // { status: "fulfilled", value: "^_^" }
+    console.log(rejected) // { status: "rejected", reason: "O_o" }
+})
+```
+
+For an empty array, an empty result is: 
+
+```javascript
+Promise.allSettled([])
+    .then((result) => {
+        console.log(result) // []
+    })
+```
+
+### Promisification
+
+When you need to transition from callback functions to promises, promisification comes to the rescue - a special helper function that turns a function working with a callback into a function that returns a promise:
+
+```javascript
+function promisify (fn) {
+    return function (...args) {
+        return new Promise((resolve, reject) => {
+            function callback(error, result) {
+                return error ? reject(error) : resolve(result)
+            }
+
+            fn(...args, callback)
+        })
+    }
+}
+
+function asyncApi (url, callback) {
+    // ... perform asynchronous operation
+    callback(null, '^_^')
+}
+
+promisify(asyncApi)('/url')
+    .then((result) => {
+        console.log(result) // ^_^
+    })
+```
+
+The operation of promisification depends on the signature of the functions in the code, because it requires considering the order of arguments, as well as the parameters of the callback. In the example above, it is assumed that the callback function is passed as the last argument, and it first takes an error as a parameter, followed by the result.
+
+### Promises or callback functions?
+
+Promises eliminate the drawbacks of callback functions. They are always asynchronous and one-time, the code is linear and does not have tight coupling, and you don't have to worry about callback hell.
+
+But what if a promise gets stuck and is not being fulfilled or rejected? In this case, you can use Promise.race to interrupt the execution of a stuck or very long request by a timeout:
+
+```javascript
+Promise.race([
+    fetchLongRequest(),
+    new Promise((_, reject) => setTimeout(reject, 3000)),
+]).then((result) => {
+    // получили данные
+}).catch((error) => {
+    // или отказ по таймеру
+})
+```
+
+In any case, it's important to understand: despite the many advantages of promises, you will still need to use callback functions in some places, and that's okay. Event handlers and many asynchronous API methods, such as setTimeout, work through them, so in such cases, there's no point in promisifying and it's more convenient to use callback functions. After all, we will also need them to create a promise. The main thing to remember is that if there is a chain of sequential calls somewhere, promises must be used there.
+
+### Coroutines
+
+Promises are the foundation for working with asynchrony, but there is a very convenient async/await extension built on top of this foundation, which is implemented thanks to coroutines.
+
+A coroutine (cooperative concurrently executed routine) is a co-program or, in simpler terms, a special function that can pause its work, remember its state, and has multiple entry and exit points.
+
+In JavaScript, generator functions act as coroutines, returning an iterator. The iterator can pause its work, remember its current state, and interact with external code through .next and .throw.
+
+Thanks to these capabilities of coroutines, you can write a [special function](https://www.promisejs.org/generators/) like this:
+
+```javascript
+function async (generator) {
+    const iterator = generator()
+
+    function handle({ done, value }) {
+        return done ? value : Promise.resolve(value)
+            .then((x) => handle(iterator.next(x)))
+            .catch((e) => handle(iterator.throw(e)))
+    }
+
+    return handle(iterator.next())
+}
+```
+And then use it to sequentially call asynchronous operations:
+
+```javascript
+async(function* () {
+    const response = yield fetch('example.com')
+    const json = yield response.json()
+
+    // process json
+})
+```
+This turned out to be so convenient that later, JavaScript added async/await constructs.
+
 
 
 
