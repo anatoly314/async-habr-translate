@@ -36,7 +36,11 @@ What is lacking is a comprehensive guide. This is exactly the need that I want t
    5. [Promisification](#promisification)
    6. [Promises or callback functions?](#promises-or-callback-functions)
    7. [Coroutines](#coroutines)
-
+4. [Async/await](#asyncawait)
+   1. [Top-level await and asynchronous modules](#top-level-await-and-asynchronous-modules)
+   2. [Error handling](#error-handling)
+   3. [Not all await is equally useful](#not-all-await-is-equally-useful)
+5. [Conclusion](#conclusion)
 ## Event Loop
 To run a website, the browser allocates a single thread that must simultaneously 
 perform two important tasks: execute code and update the interface. However, 
@@ -983,8 +987,153 @@ async(function* () {
 ```
 This turned out to be so convenient that later, JavaScript added async/await constructs.
 
+## Async/await
 
+This is syntactic sugar implemented through promises and coroutines, which makes working with asynchronous operations more convenient.
 
+The async modifier is placed before a function and makes it asynchronous:
+
+```javascript
+async function asyncFunction () {
+    return '^_^'
+}
+```
+
+The result of an asynchronous function is always a promise. For convenience, you can think of an asynchronous function as a regular one that wraps its result in a promise:
+```javascript
+function asyncFunction () {
+    return Promise.resovle('^_^')
+}
+```
+The result of an asynchronous function is extracted through then or await:
+
+```javascript
+asyncFunction().then((value) => {
+    console.log(value) // ^_^
+})
+
+(async () => {
+    const value = await asyncFunction()
+    console.log(value) // ^_^
+})()
+```
+
+Await is slightly more convenient than promises, but it has a serious limitation - it can only be called within an asynchronous function. With this, asynchrony becomes "sticky" - once you write an asynchronous call, there's no way back to the synchronous world. For a while, nothing could be done about this, but then top-level await appeared.
+
+### Top-level await and asynchronous modules
+
+Top-level await allows you to use this operator outside of asynchronous functions:
+
+```javascript
+const connection = await dbConnector()
+const jQuery = await import('http://cdn.com/jquery')
+```
+But it can only be used either inside ES6 modules or in DevTools. This limitation is due to the fact that await is syntactic sugar that works through modules.
+
+For example, a module with top-level await looks like this for a developer:
+```javascript
+// module.mjs
+const value =
+    await Promise.resolve('^_^')
+
+export { value }
+
+// main.mjs
+import {
+    value
+} from './module.mjs'
+
+console.log(value) // ^_^
+```
+Neither inside the module nor inside the main program are there asynchronous functions, but they are necessary for await to work. So how does this code work?
+
+The fact is that the engine will take on the task of wrapping await in an asynchronous function, so somewhere "under the hood", without syntactic sugar, top-level await will look like this:
+
+```javascript
+// module.mjs
+export let value
+export const promise = (async () => {
+    value = await Promise.resolve('^_^')
+})()
+
+export { value, promise }
+
+// main.mjs
+import {
+    value,
+    promise
+} from './module.mjs'
+
+(async () => {
+    await promise
+    console.log(value) // ^_^
+})()
+```
+No magic. Just syntactic sugar.
+
+## Error handling
+
+There are two ways to handle errors within asynchronous functions. The first is to add a catch after calling the function, and the second is to wrap the await call in a try/catch block.
+
+Since asynchronous functions are promises, you can add a catch after the call and handle the error.
+
+```javascript
+async function asyncFunction () {
+    await Promise.reject('O_o')
+}
+
+asyncFunction()
+    .then((value) => {
+        // what if there's an error?
+    })
+    .catch((error) => {
+        // then catch will capture the error
+    })
+```
+
+This method will work, but try/catch is likely to be more suitable because it allows you to handle exceptions directly within the function body:
+
+```javascript
+async function asyncFunction () {
+    try {
+        await Promise.reject('O_o')
+    } catch (error) {
+        // catch the error
+    }
+}
+
+asyncFunction().then((value) => {
+    // we're safe
+})
+```
+
+Another important advantage: unlike catch, the try/catch block can handle top-level await.
+
+### Not all await is equally useful
+
+The await operator suspends task execution until the asynchronous operation is complete. If you mindlessly add await before each asynchronous operation, this may lead to suboptimal code performance due to sequential loading of unrelated data.
+
+For example, you could load a list of unrelated articles and pictures using await like this:
+
+```javascript
+const articles = await fetchArticles()
+const pictures = await fetchPictures()
+
+// ... some actions with articles and pictures
+```
+
+In this case, data that could be fetched in parallel will be requested sequentially. As long as the first part of the data is not fully loaded, work with the second part will not start. Because of this, the task will take longer than it could. Suppose each request takes two seconds; then, it will take four seconds to fully load the data. However, if you load the data in parallel using Promise.all, all the information will load twice as fast:
+
+```javascript
+const [articles, pictures] = await Promise.all([
+    fetchArticles(),
+    fetchPictures(),
+])
+```
+
+## Conclusion
+
+That's everything you probably wanted to know about asynchrony in the browser. I hope you now have a good understanding of how the event loop works, can escape from callback hell, easily work with promises, and skillfully use async/await. If I forgot something, please remind me in the comments.
 
 Used resources:
 - https://stackoverflow.com/questions/11948245/markdown-to-create-pages-and-table-of-contents
