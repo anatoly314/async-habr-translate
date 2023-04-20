@@ -1,5 +1,13 @@
 # Mastering Asynchrony in the Browser: A Comprehensive Guide
 
+> Acknowledgements 
+> 
+> This article was originally written in Russian by [Grigory Biziukin](https://habr.com/ru/users/gbiz/posts/) and was published on [Полное понимание асинхронности в браузере
+](https://habr.com/ru/companies/yandex/articles/718084/) on 28/02/2023. I would like to thank [Grigory Biziukin](https://habr.com/ru/users/gbiz/posts/) for creating such informative and insightful content.
+> I have made every effort to accurately translate the content while maintaining the author's original message and intent. However, any errors in translation are solely my own.
+> I hope that my translation will allow a wider audience to access and appreciate this valuable content, and I encourage readers to visit the original publication or website to read more of [Grigory Biziukin](https://habr.com/ru/users/gbiz/posts/)'s work.
+
+
 There are numerous articles, documentations, and books written about the asynchrony of JavaScript. 
 However, the information is widely dispersed throughout the internet, making it difficult to quickly 
 and fully understand what is what and to form a complete picture in your mind. 
