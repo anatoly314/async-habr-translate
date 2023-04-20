@@ -375,6 +375,10 @@ Interaction with queues occurs through:
 
 In Node.js, the event loop works in a similar way: first, a task is executed, then you need to look into the queue for the next one. However, the set of queues is different, and there are no stages related to updating the interface because the code runs on the server. You can read more about event loops in Node.js in a [series of articles written by Deepal Jayasekara](https://blog.insiderattack.net/event-loop-and-the-big-picture-nodejs-event-loop-part-1-1cb67a182810). For a quick understanding of `setImmediate` and `process.nextTick`, there is a [good explanation on Stack Overflow](https://stackoverflow.com/questions/55467033/difference-between-process-nexttick-and-queuemicrotask/57325561#57325561).
 
+> Translator's notice:
+> There's a really good video which explains how the event loop works here: [What the heck is the event loop anyway? | Philip Roberts | JSConf EU
+](https://www.youtube.com/watch?v=8aGhZQkoFbQ)
+
 
 ## Callback Functions
 
