@@ -816,9 +816,9 @@ If you pass an empty array to Promise.race, the promise will be stuck in a pendi
 ```javascript
 Promise.race([])
     .then(() => {
-        console.log('resolve не выполнится никогда')
+        console.log('resolve will never be executed')
     }).catch(() => {
-        console.log('reject тоже')
+        console.log('reject neither')
     })
 ```
 
@@ -917,9 +917,9 @@ Promise.race([
     fetchLongRequest(),
     new Promise((_, reject) => setTimeout(reject, 3000)),
 ]).then((result) => {
-    // получили данные
+    // received data
 }).catch((error) => {
-    // или отказ по таймеру
+    //  or rejection due to timeout
 })
 ```
 
