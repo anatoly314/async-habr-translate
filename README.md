@@ -107,10 +107,6 @@ There may be multiple tasks ready for execution after asynchronous calls. Theref
 Tasks enter the queue through the asynchronous browser API. First, an asynchronous operation is performed somewhere in a separate thread, and after its completion, a task ready for execution is added to the call stack.
 
 ![img.png](task_queue.png?)
-<figcaption align="center">
-<i>Task queue.</i>
-</figcaption>
-<br />
 
 Understanding this concept, one can examine a peculiarity of timers in JavaScript, which are also part of the asynchronous API.
 
@@ -184,10 +180,6 @@ Aside from web workers, there is another, less obvious way to create a separate 
 
 Microtasks are tasks that are stored in a special separate queue.
 ![img.png](microtasks.png?)
-<figcaption align="center">
-<i>Microtask Queue.</i>
-</figcaption>
-<br />
 
 Tasks enter this queue when using promises, asynchronous functions, built-in calls to queueMicrotask, or Observer APIs.
 
@@ -252,19 +244,12 @@ Additionally, I recommend a good article [JavaScript Visualized: Promises & Asyn
 
 requestAnimationFrame (or abbreviated as rAF) allows you to execute JavaScript code right before updating the interface. Emulating such behavior with other methods, like timers, is almost impossible.
 ![img.png](raf_vs_no_raf.png?)
-<figcaption align="center">
-<i>At the top without rAF, at the bottom with rAF</i>
-</figcaption>
-<br />
 
 The main purpose of requestAnimationFrame is to provide smooth JavaScript animations, but it is not often used since animations are easier and more efficient to implement with CSS. Nevertheless, it occupies its own rightful place in the event loop.
 
 There may be multiple tasks that need to be executed before updating the next frame, so requestAnimationFrame has its own separate queue.
 ![img.png](raf.png?)
-<figcaption align="center">
-<i>requestAnimationFrame</i>
-</figcaption>
-<br />
+
 Tasks from the queue are executed once before updating the interface in the order they were added:
 
 ```javascript
