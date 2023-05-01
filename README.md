@@ -8,7 +8,11 @@
 > I hope that my translation will allow a wider audience to access and appreciate this valuable content, and I encourage readers to visit the original publication or website to read more of [Grigory Biziukin](https://habr.com/ru/users/gbiz/posts/)'s work.
 
 
-There are numerous articles, documents, and books written about the asynchrony of JavaScript. However, the information is widely dispersed throughout the internet, making it difficult to quickly and fully understand the various aspects and form a complete picture in your mind. What is lacking is a comprehensive guide. This is precisely the need that I want to address with my article.
+There are numerous articles, documentations, and books written about the asynchrony of JavaScript. 
+However, the information is widely dispersed throughout the internet, making it difficult to quickly 
+and fully understand what is what and to form a complete picture in your mind. 
+What is lacking is a comprehensive guide. This is exactly the need that I want to meet with my article.
+
 
 # Table of Contents
 1. [Event Loop](#event-loop)
@@ -53,6 +57,10 @@ these tasks sequentially to create the illusion of parallel execution.
 This is the event loop.
 
 ![img.png](event_loop.png)
+<figcaption align="center">
+<i>Event Loop: Executing Code and Updating the Interface</i>
+</figcaption>
+
 
 The call stack is where code execution takes place. When a function calls another function, its own execution is paused until the called function completes, forming a call stack. Once all the operations in the stack are executed and it becomes empty, the event loop can either add more code to the stack for execution or update the user interface.
 ![img.png](call_stack.png)
