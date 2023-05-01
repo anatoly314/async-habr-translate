@@ -56,22 +56,12 @@ This is the event loop.
 
 The call stack is where code execution takes place. When a function calls another function, its own execution is paused until the called function completes, forming a call stack. Once all the operations in the stack are executed and it becomes empty, the event loop can either add more code to the stack for execution or update the user interface.
 ![img.png](call_stack.png)
-<figcaption align="center">
-<i>Call Stack</i>
-</figcaption>
-<br />
-
 
 The browser engine is responsible for updating the user interface. This process usually consists of four steps: style, layout (reflow), paint, and composite. During the style step, the browser recalculates the style changes caused by JavaScript operations and calculates media queries. Layout recalculates the page's geometry, which involves computing layers, calculating the mutual arrangement of elements, and their mutual influence. During the paint step, the engine renders the elements and applies styles that only affect their appearance, such as color, background, etc. Composite applies the remaining specific styles, usually transformations that occur in a separate layer.
 
 To optimize a web page, it can be helpful to understand when the browser performs or skips certain operations. The browser may skip unnecessary operations to improve performance. By understanding when the browser skips or executes specific steps, you can optimize your web page accordingly.
 
 ![img.png](refreshing_layout.png)
-<figcaption align="center">
-<i>Updating the interface: style, layout (reflow), paint, composite.
-</i>
-</figcaption>
-<br />
 
 The first operation in the event loop can be either updating the interface or executing code. If a website uses a synchronous script tag, the engine will most likely execute it before rendering the first user interface frame. However, if we load scripts asynchronously using async or defer, there’s a high probability that the browser will render the user interface before loading JavaScript.
 
@@ -79,12 +69,6 @@ The asynchronous script loading option is more preferable because the initial bu
 
 The call stack will execute both the developer-written code and the default built-in code responsible for interacting with the page. Thanks to the built-in code, scrolling, selection, animations, and other features work, for which JavaScript might seem unnecessary. The call stack will execute built-in scripts even when JavaScript is disabled in the browser. For example, you can open an empty about:blank page without JavaScript, perform a few clicks, and see that the call stack has executed the code responsible for event handling.
 ![img.png](event_loop_without_javascript.png)
-<figcaption align="center">
-<i>The event loop always has work to do, even when a site is written without JavaScript.</i>
-</figcaption>
-<br />
-
-
 
 ### Tasks, Ticks, and Web API
 
