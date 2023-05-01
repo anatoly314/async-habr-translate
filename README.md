@@ -52,23 +52,23 @@ a single thread can only perform one action at a time. Therefore, the thread per
 these tasks sequentially to create the illusion of parallel execution. 
 This is the event loop.
 
-![img.png](event_loop.png)
+![img.png](event_loop.png?)
 
 The call stack is where code execution takes place. When a function calls another function, its own execution is paused until the called function completes, forming a call stack. Once all the operations in the stack are executed and it becomes empty, the event loop can either add more code to the stack for execution or update the user interface.
-![img.png](call_stack.png)
+![img.png](call_stack.png?)
 
 The browser engine is responsible for updating the user interface. This process usually consists of four steps: style, layout (reflow), paint, and composite. During the style step, the browser recalculates the style changes caused by JavaScript operations and calculates media queries. Layout recalculates the page's geometry, which involves computing layers, calculating the mutual arrangement of elements, and their mutual influence. During the paint step, the engine renders the elements and applies styles that only affect their appearance, such as color, background, etc. Composite applies the remaining specific styles, usually transformations that occur in a separate layer.
 
 To optimize a web page, it can be helpful to understand when the browser performs or skips certain operations. The browser may skip unnecessary operations to improve performance. By understanding when the browser skips or executes specific steps, you can optimize your web page accordingly.
 
-![img.png](refreshing_layout.png)
+![img.png](refreshing_layout.png?)
 
 The first operation in the event loop can be either updating the interface or executing code. If a website uses a synchronous script tag, the engine will most likely execute it before rendering the first user interface frame. However, if we load scripts asynchronously using async or defer, there’s a high probability that the browser will render the user interface before loading JavaScript.
 
 The asynchronous script loading option is more preferable because the initial bundle is usually quite large. Until it is fully executed, the user will see a white screen because the event loop will not be able to render the user interface. Even with asynchronous loading, it is recommended to split JavaScript code into separate bundles and load only the essentials first, because the event loop is very sequential: it fully executes all the code in the call stack and only then moves on to updating the interface. If there is too much code in the call stack, the interface will be updated with a significant delay. The user will have the impression that the site is lagging. If an infinite loop is written, the browser will keep executing the code over and over, and the interface update will never happen, so the page will simply freeze and stop responding to user actions.
 
 The call stack will execute both the developer-written code and the default built-in code responsible for interacting with the page. Thanks to the built-in code, scrolling, selection, animations, and other features work, for which JavaScript might seem unnecessary. The call stack will execute built-in scripts even when JavaScript is disabled in the browser. For example, you can open an empty about:blank page without JavaScript, perform a few clicks, and see that the call stack has executed the code responsible for event handling.
-![img.png](event_loop_without_javascript.png)
+![img.png](event_loop_without_javascript.png?)
 
 ### Tasks, Ticks, and Web API
 
@@ -106,7 +106,7 @@ There may be multiple tasks ready for execution after asynchronous calls. Theref
 
 Tasks enter the queue through the asynchronous browser API. First, an asynchronous operation is performed somewhere in a separate thread, and after its completion, a task ready for execution is added to the call stack.
 
-![img.png](task_queue.png)
+![img.png](task_queue.png?)
 <figcaption align="center">
 <i>Task queue.</i>
 </figcaption>
@@ -183,7 +183,7 @@ Aside from web workers, there is another, less obvious way to create a separate 
 ### Microtasks
 
 Microtasks are tasks that are stored in a special separate queue.
-![img.png](microtasks.png)
+![img.png](microtasks.png?)
 <figcaption align="center">
 <i>Microtask Queue.</i>
 </figcaption>
@@ -251,7 +251,7 @@ Additionally, I recommend a good article [JavaScript Visualized: Promises & Asyn
 ### requestAnimationFrame
 
 requestAnimationFrame (or abbreviated as rAF) allows you to execute JavaScript code right before updating the interface. Emulating such behavior with other methods, like timers, is almost impossible.
-![img.png](raf_vs_no_raf.png)
+![img.png](raf_vs_no_raf.png?)
 <figcaption align="center">
 <i>At the top without rAF, at the bottom with rAF</i>
 </figcaption>
@@ -260,7 +260,7 @@ requestAnimationFrame (or abbreviated as rAF) allows you to execute JavaScript c
 The main purpose of requestAnimationFrame is to provide smooth JavaScript animations, but it is not often used since animations are easier and more efficient to implement with CSS. Nevertheless, it occupies its own rightful place in the event loop.
 
 There may be multiple tasks that need to be executed before updating the next frame, so requestAnimationFrame has its own separate queue.
-![img.png](raf.png)
+![img.png](raf.png?)
 <figcaption align="center">
 <i>requestAnimationFrame</i>
 </figcaption>
@@ -319,7 +319,7 @@ As a second argument, you can specify a timeout, and if the task is not complete
 
 Similar to requestAnimationFrame, to regularly add a task to the queue, you will need to write a recursive function, and to stop it - pass the current identifier to cancelIdleCallback.
 
-![img.png](request-idle-callback.png)
+![img.png](request-idle-callback.png?)
 <figcaption align="center">
 <i>requestAnimationFrame</i>
 </figcaption>
