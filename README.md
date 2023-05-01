@@ -72,7 +72,7 @@ The call stack will execute both the developer-written code and the default buil
 
 ### Tasks, Ticks, and Web API
 
-A task is JavaScript code that executes in the call stack. A tick is the execution of a task in the call stack. Web API refers to properties and methods in the global Window object.
+A task in JavaScript refers to a piece of code that is executed within the call stack. A tick, on the other hand, represents a single iteration of the event loop, during which tasks in the call stack are processed. Web API refers to properties and methods in the global Window object.
 
 Web API methods can work either synchronously or asynchronously: the former will execute in the current tick, while the latter will execute in one of the following ticks.
 
@@ -168,11 +168,11 @@ worker.addEventListener('message', () => {
 worker.postMessage('any data')
 ```
 
-A separate thread is created for the web worker, where calculations will take place independently of the main event loop. Once the calculations are completed, the worker can send data to the main event loop using postMessage, and the task associated with processing the data will be added to the queue and executed in one of the following ticks. However, web workers have limitations. For example, you cannot work with the DOM inside a worker, but computational tasks will work.
+A separate thread is created for the web worker, where calculations will take place independently of the main event loop. Once the calculations are completed, the worker can send data to the main event loop using `postMessage`, and the task associated with processing the data will be added to the queue and executed in one of the following ticks. However, web workers have limitations. For example, you cannot work with the DOM inside a worker, but computational tasks will work.
 
 If the calculation data is needed within other tabs from the same origin, you can use a SharedWorker instead of a regular worker. Additionally, for some tasks, a ServiceWorker might be useful, but that’s another story. You can read more about workers, for example, [here](https://dev.to/jennieji/introduction-to-workers-and-why-we-should-use-them-3mn3).
 
-Aside from web workers, there is another, less obvious way to create a separate thread – opening a window or frame on a different domain to violate the same-origin policy. Then the window or frame will have its own independent event loop, which can perform some work and interact with the main window, just like a web worker, using the postMessage mechanism. This is quite a specific behavior that may look different in different browsers. You can test it, for example, using a [demo from Stack Overflow](https://stackoverflow.com/questions/11510483/will-a-browser-give-an-iframe-a-separate-thread-for-javascript).
+Aside from web workers, there is another, less obvious way to create a separate thread – opening a window or frame on a different domain to violate the same-origin policy. Then the window or frame will have its own independent event loop, which can perform some work and interact with the main window, just like a web worker, using the `postMessage` mechanism. This is quite a specific behavior that may look different in different browsers. You can test it, for example, using a [demo from Stack Overflow](https://stackoverflow.com/questions/11510483/will-a-browser-give-an-iframe-a-separate-thread-for-javascript).
 
 
 
@@ -201,7 +201,7 @@ new MutationObserver(() => {
 }).observe(document.body, { childList: true, subtree: true })
 ```
 
-The microtask queue has higher priority, and tasks from it are executed before regular tasks. Moreover, it has an important feature – the event loop will execute microtasks until the queue is empty. Thanks to this, the engine guarantees that all tasks in the queue have access to the same DOM state.
+The microtask queue has a higher priority than the regular task queue, and microtasks are executed before regular tasks. A notable feature of the microtask queue is that the event loop will continue to execute microtasks until the queue is empty. This ensures that all tasks in the queue have access to a consistent DOM state.
 
 This behavior can be clearly seen in the example with promises, where each subsequent handler has access to the same DOM state (at the time of setting the promise):
 
@@ -242,12 +242,12 @@ Additionally, I recommend a good article [JavaScript Visualized: Promises & Asyn
 
 ### requestAnimationFrame
 
-requestAnimationFrame (or abbreviated as rAF) allows you to execute JavaScript code right before updating the interface. Emulating such behavior with other methods, like timers, is almost impossible.
+`requestAnimationFrame` (or abbreviated as rAF) allows you to execute JavaScript code right before updating the interface. Emulating such behavior with other methods, like timers, is almost impossible.
 ![img.png](raf_vs_no_raf.png?)
 
-The main purpose of requestAnimationFrame is to provide smooth JavaScript animations, but it is not often used since animations are easier and more efficient to implement with CSS. Nevertheless, it occupies its own rightful place in the event loop.
+The main purpose of `requestAnimationFrame` is to provide smooth JavaScript animations, but it is not often used since animations are easier and more efficient to implement with CSS. Nevertheless, it occupies its own rightful place in the event loop.
 
-There may be multiple tasks that need to be executed before updating the next frame, so requestAnimationFrame has its own separate queue.
+There may be multiple tasks that need to be executed before updating the next frame, so `requestAnimationFrame` has its own separate queue.
 ![img.png](raf.png?)
 
 Tasks from the queue are executed once before updating the interface in the order they were added:
@@ -268,7 +268,7 @@ requestAnimationFrame(() => {
 // one two three
 ```
 
-You can create a recurring task that will execute again and again using a recursive function. Moreover, if you need to cancel the execution for some reason, you can do it using cancelAnimationFrame. However, make sure to pass the current identifier to it, as each rAF call creates a new requestId.
+You can create a recurring task that will execute again and again using a recursive function. Moreover, if you need to cancel the execution for some reason, you can do it using `cancelAnimationFrame`. However, make sure to pass the current identifier to it, as each rAF call creates a new requestId.
 ```javascript
 let requestId
 
@@ -283,13 +283,13 @@ setTimeout(() => {
     cancelAnimationFrame(requestId)
 }, 3000)
 ```
-There is [a small but useful article](https://flaviocopes.com/requestanimationframe/) on the topic of requestAnimationFrame in Flavio Copes’ blog.
+There is [a small but useful article](https://flaviocopes.com/requestanimationframe/) on the topic of `requestAnimationFrame` in Flavio Copes’ blog.
 
 
 
 ### requestIdleCallback
 
-requestIdleCallback (or abbreviated as rIC) adds tasks to yet another (fourth) queue, which will be executed during the browser’s idle period when there are no more priority tasks from other queues.
+`requestIdleCallback` (or abbreviated as rIC) adds tasks to yet another (fourth) queue, which will be executed during the browser’s idle period when there are no more priority tasks from other queues.
 
 ```javascript
 function sendAnalytics() { 
@@ -302,11 +302,11 @@ requestIdleCallback(sendAnalytics, { timeout: 2000 });
 
 As a second argument, you can specify a timeout, and if the task is not completed within the specified number of milliseconds, it will be added to the regular queue and then executed in the order of the general queue.
 
-Similar to requestAnimationFrame, to regularly add a task to the queue, you will need to write a recursive function, and to stop it - pass the current identifier to cancelIdleCallback.
+Similar to `requestAnimationFrame`, to regularly add a task to the queue, you will need to write a recursive function, and to stop it - pass the current identifier to `cancelIdleCallback`.
 
 ![img.png](request-idle-callback.png?)
 
-In contrast to the other queues discussed earlier, requestIdleCallback is still partly an experimental API, with support [missing in Safari](https://caniuse.com/?search=cancelIdleCallback). In addition, this function has a [number of limitations](https://developer.mozilla.org/en-US/docs/Web/API/Background_Tasks_API#getting_the_most_out_of_idle_callbacks), making it convenient to use only for small non-priority tasks without interaction with the DOM, for example, for sending analytical data. You can read more about requestIdleCallback in Paul Lewis’s material [“Using requestIdleCallback”](https://developer.chrome.com/blog/using-requestidlecallback/).
+In contrast to the other queues discussed earlier, `requestIdleCallback` is still partly an experimental API, with support [missing in Safari](https://caniuse.com/?search=cancelIdleCallback). In addition, this function has a [number of limitations](https://developer.mozilla.org/en-US/docs/Web/API/Background_Tasks_API#getting_the_most_out_of_idle_callbacks), making it convenient to use only for small non-priority tasks without interaction with the DOM, for example, for sending analytical data. You can read more about `requestIdleCallback` in Paul Lewis’s material [“Using requestIdleCallback”](https://developer.chrome.com/blog/using-requestidlecallback/).
 
 
 
@@ -318,13 +318,13 @@ From the **task queue**, the engine usually executes one or several tasks, tryin
 
 **requestAnimation** will execute all tasks from its queue because it guarantees code execution before updating the interface. However, if someone adds new tasks to the queue during execution, they will be performed on the next loop.
 
-When the idle time comes and there are no more priority tasks in other queues, one or several requestIdleCallback tasks will be executed. Thus, this queue is somewhat similar to the task queue but with a lower priority.
+When the idle time comes and there are no more priority tasks in other queues, one or several `requestIdleCallback` tasks will be executed. Thus, this queue is somewhat similar to the task queue but with a lower priority.
 
 Interaction with queues occurs through:
 
  - tasks - timers, events (including postMessage processing); 
- - microtasks - promises, asynchronous functions, Observer API, queueMicrotask; 
- - requestAnimationFrame, requestIdleCallback - corresponding API calls.
+ - microtasks - promises, asynchronous functions, Observer API, `queueMicrotask`; 
+ - `requestAnimationFrame`, `requestIdleCallback` - corresponding API calls.
 
 
 
@@ -345,7 +345,7 @@ This is a convenient and simple way to interact with asynchronous APIs, but if n
 
 **Callback hell** is the most common issue mentioned when discussing the drawbacks of callback functions.
 
-The sequence of asynchronous calls using callback functions becomes similar to the **pyramid of doom**.
+The sequence of asynchronous calls using callback functions becomes similar to the [pyramid of doom](https://en.wikipedia.org/wiki/Pyramid_of_doom_(programming)).
 
 ```javascript
 fetchToken(url, (token) => {
@@ -365,8 +365,7 @@ fetchToken(url, (token) => {
 One might think that this is the main drawback of callback functions, but the problems with them are just beginning.
 
 ### Don't Release Zalgo
-
-The thing is, you can't initially determine how exactly a callback function will be called—synchronously or asynchronously, and the logic of our code can strongly depend on this. To be sure, you will have to read the implementation of the function. This requires additional actions and complicates debugging.
+The challenge with callback functions is that it's not always evident whether they will be executed synchronously or asynchronously. This ambiguity can impact the logic of the code and may require developers to examine the function's implementation to be certain of its behavior. Consequently, this adds complexity to the debugging process.
 
 ```javascript
 syncOrAsync(() => {
@@ -383,11 +382,12 @@ function syncOrAsync(callback) {
     queueMicrotask(callback)
 }
 ```
-In niche circles, this problem is widely known as the Zalgo monster issue, which is better not to release.
+In niche circles, this problem is widely known as the [Zalgo monster issue](https://blog.izs.me/2013/08/designing-apis-for-asynchrony/), which is better not to release.
 
 ### Tight Coupling
 
-Tight coupling is the issue of one part of the code depending on another when handling sequential asynchronous operations:
+Tight coupling refers to the issue where one part of the code is heavily dependent on another part, particularly when handling sequential asynchronous operations.
+
 ```javascript
 firstStep((error, data) => {
    if (error) {
@@ -401,11 +401,11 @@ firstStep((error, data) => {
 })
 ```
 
-If an error occurs in step #1, only it needs to be handled. But if an error occurs in step #2, you'll have to cancel step #2 and then step #1 as well. The more steps there are, the more problems there will be when handling errors.
+When managing multi-step processes, error handling becomes more complex. If an error occurs in step #1, it can be handled directly. However, if an error occurs in step #2, you may need to cancel both step #2 and step #1 to properly handle the error. As the number of steps increases, error handling becomes increasingly challenging.
 
 ### The Trust Issue
 
-Inversion of control is passing our code to a library written by other developers:
+Inversion of control refers to the practice of passing your code to a library or framework developed by others, allowing them to manage the control flow and execution of your code.
 
 ```javascript
 import { thirdPartyCode } from 'third-party-package'
@@ -417,14 +417,13 @@ thirdPartyCode(() => {
 
 We rely on our task being called as it should, but everything may not go as expected. Another library might call the function too early or too late, do it too frequently or rarely, swallow errors and exceptions, pass incorrect arguments, or not call our function at all.
 
-Based on what's been said, one might think that working with asynchrony through callback functions is full of challenges. To some extent, that's true, but fortunately, **promises** help to deal with all these problems.
-
+Given these challenges, one might assume that handling asynchrony through callback functions is inherently problematic. To some extent, this is true. However, promises provide a powerful solution to address these concerns and simplify asynchronous programming.
 
 ## Promises
 
-Promises are like order numbers at a restaurant. When we place an order, instead of food, we receive an order number. There are two possible scenarios: first, the order will be successfully prepared and served at the pick-up counter after some time; second, something could go wrong, such as running out of ingredients, and the restaurant employee will inform us that they cannot fulfill our order and will offer a refund or an alternative.
+Promises can be compared to order numbers at a restaurant. When we place an order, we receive an order number instead of the food itself. Two possible scenarios can occur: first, the order will be successfully prepared and served at the pick-up counter after some time; second, something could go wrong, such as running out of ingredients, prompting the restaurant employee to inform us that our order cannot be fulfilled. In this case, they would offer a refund or an alternative.
 
-Promises are created through the Promise constructor, which must be called with new. The constructor takes only one argument: a callback function with two parameters, resolve and reject. Inside the Promise, an asynchronous operation is performed with the callback function. In turn, inside this function, either resolve or reject is called, setting the Promise to either a fulfilled or rejected state, respectively.
+Promises are created using the `Promise` constructor, which must be instantiated with the `new` keyword. The constructor accepts a single argument: a callback function with two parameters, `resolve` and `reject`. Within the callback function, an asynchronous operation is carried out. Depending on the outcome of the operation, either the `resolve` or `reject` function is called, setting the Promise's state to fulfilled or rejected, respectively.
 
 This is how a Promise can be set to either fulfilled or rejected:
 
@@ -439,14 +438,14 @@ const rejectedPromise = new Promise((resolve, reject) => {
     setTimeout(() => { reject('O_o') }, 1000)
 })
 ```
-After a Promise is set, the result can be obtained through the then method:
+After a `Promise` is set, the result can be obtained through the `then` method:
 
 ```javascript
 resolvedPromise.then((value) => {
     console.log(value) // ^_^
 })
 ```
-A rejection can be handled either through the second parameter in then or through catch:
+A rejection can be handled either through the second parameter in `then` or through `catch`:
 
 ```javascript
 rejectedPromise.then(
@@ -463,7 +462,7 @@ rejectedPromise.catch((error) => {
 })
 ```
 
-The value of a Promise is set once and cannot be changed:
+The value of a `Promise` is set once and cannot be changed:
 
 ```javascript
 const promise = new Promise((resolve, reject) => {
@@ -480,7 +479,7 @@ promise.then((value) => {
 })
 ```
 
-For convenience, you can use the static methods, the Promise.resolve and Promise.reject constructor functions, which create an already-set Promise:
+For convenience, you can use the static methods, the `Promise.resolve` and `Promise.reject` constructor functions, which create an already-set Promise:
 ```javascript
 Promise.resolve('^^').then((value) => {
     console.log(value) // ^^
@@ -490,7 +489,8 @@ Promise.reject('O_o').catch((error) => {
     console.log(error) // O_o
 })
 ```
-Promises also have a finally method, which does something regardless of success or failure. This is similar to baking a dish in an oven: whether the dish burns or not, the oven still needs to be turned off.
+
+Promises also have a `finally` method, which is executed regardless of the promise's success or failure. This can be compared to baking a dish in an oven: whether the dish is cooked perfectly or gets burnt, the oven still needs to be turned off afterward.
 ```javascript
 Promise.resolve('^^').finally(() => {
     // do something
@@ -550,7 +550,9 @@ Promise.reject('O_o')
         console.log(value) // ^_^
     })
 ```
-If the chain ends and the error remains unhandled, the unhandledPromiseRejection event will be triggered, which you can subscribe to in order to track unhandled errors inside promises:
+
+If the chain ends with the error still unhandled, the `unhandledrejection` event will be triggered. You can subscribe to this event to track unhandled errors inside promises:
+
 ```javascript
 window.addEventListener('unhandledrejection', (event) => {
    console.log('Unhandled Promise error. Shame on you!')
@@ -558,7 +560,9 @@ window.addEventListener('unhandledrejection', (event) => {
    console.log(event.reason) // O_o
 })
 ```
-It's important to understand that error handling only works when the chain is uninterrupted. If you omit the return statement and create a promise set to reject, the subsequent catch won't be able to handle it:
+
+It's crucial to recognize that error handling functions properly only when the promise chain remains uninterrupted. If the return statement is omitted and a rejected promise is created, the following catch block will be unable to handle the error:
+
 ```javascript
 Promise.resolve()
    .then(() => {
@@ -572,11 +576,11 @@ Promise.resolve()
 
 ### Implicit behavior
 
-Promises have two implicit features. First, the then and catch methods always return a new promise. Second, they internally catch any errors and, if something goes wrong, return a promise set to reject with the reason for the error.
+Promises have two implicit features. First, the `then` and `catch` methods always return a new promise. Second, they internally catch any errors and, if something goes wrong, return a promise set to reject with the reason for the error.
 
 #### Returning a new promise
 
-Each call to then or catch creates a new promise, the value of which is either undefined or explicitly set via return.
+Each call to `then` or `catch` creates a new promise, the value of which is either undefined or explicitly set via return.
 
 Thanks to this, instead of creating temporary variables, you can immediately make a convenient chain of calls:
 
@@ -673,7 +677,7 @@ Promise.resolve()
         console.log(error) // TypeError: Cannot read property 'toString' of undefined
     })
 ```
-Thus, within promises, you can do without try/catch because promises will do it for us. The main thing is to properly handle the reason for rejection in catch.
+Thus, within promises, you can do without try/catch because promises will do it for us. The main thing is to properly handle the reason for rejection in `catch`.
 
 ### Thenable objects
 
@@ -686,7 +690,7 @@ const thenable = {
     }
 }
 ```
-Most likely, these are promise polyfills before ES6. Promises will unwrap such objects and then wrap them in full-fledged ES6 promises. This is how resolve, Promise.resolve, then, and catch work.
+Most likely, these are promise polyfills before ES6. Promises will unwrap such objects and then wrap them in full-fledged ES6 promises. This is how `resolve`, `Promise.resolve`, `then`, and `catch` work.
 ```javascript
 Promise.resolve(thenable)
     .then((value) => {
