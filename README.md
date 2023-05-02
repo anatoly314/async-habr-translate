@@ -652,7 +652,7 @@ Promise.resolve('^')
 
 #### Hidden try/catch
 
-Another feature of promises is related to error handling. Callback functions passed to promise methods are wrapped in try/catch. If something goes wrong, the try/catch will catch the error and set it as the reason for the promise's rejection:
+Another feature of promises is related to error handling. Callback functions passed to promise methods are wrapped in `try/catch`. If something goes wrong, the `try/catch` will catch the error and set it as the reason for the promise's rejection:
 ```javascript
 Promise.resolve()
 .then(() => {
@@ -677,7 +677,7 @@ Promise.resolve()
         console.log(error) // TypeError: Cannot read property 'toString' of undefined
     })
 ```
-Thus, within promises, you can do without try/catch because promises will do it for us. The main thing is to properly handle the reason for rejection in `catch`.
+Thus, within promises, you can do without `try/catch` because promises will do it for us. The main thing is to properly handle the reason for rejection in `catch`.
 
 ### Thenable objects
 
@@ -719,7 +719,7 @@ awesomeES6Promise.then((value) => {
     console.log(value) // @_@
 })
 ```
-There is one peculiarity: if you pass a regular promise to `Promise.resolve`, it will not be unwrapped and will be returned unchanged. At the same time, `resolve`, `then`, and `catch` will unwrap the value and create a new promise.
+There is one peculiarity: if you pass a regular promise to `Promise.resolve`, it will not create a new promise and will return the original promise unchanged. However, when using the `resolve` callback inside a `Promise` constructor or the `then` and `catch` methods on a promise, they will always create and return a new promise that depends on the resolution of the previous promise.
 
 ```javascript
 const thenable = {
@@ -811,7 +811,7 @@ Promise.race([
 })
 ```
 
-If you pass an empty array to Promise.race, the promise will be stuck in a pending state and will not be set to either fulfillment or rejection:
+If you pass an empty array to `Promise.race`, the promise will be stuck in a pending state and will not be set to either fulfillment or rejection:
 
 ```javascript
 Promise.race([])
@@ -834,7 +834,7 @@ Promise.any([
     console.log(result) // ^_^
 })
 ```
-When all promises are set to rejection, any will return an error object, in which you can extract information about the rejections from the errors field:
+When all promises are set to rejection, `any` will return an error object, in which you can extract information about the rejections from the errors field:
 ```javascript
 Promise.any([
     setPromise('O_o', 400, true),
@@ -904,13 +904,13 @@ promisify(asyncApi)('/url')
     })
 ```
 
-The operation of promisification depends on the signature of the functions in the code, because it requires considering the order of arguments, as well as the parameters of the callback. In the example above, it is assumed that the callback function is passed as the last argument, and it first takes an error as a parameter, followed by the result.
+The operation of promisification depends on the signature of the functions in the code, because it requires considering the order of arguments, as well as the parameters of the callback. In the example above, it is assumed that the callback function is passed as the last argument, and it first takes an `error` as a parameter, followed by the `result`.
 
 ### Promises or callback functions?
 
-Promises eliminate the drawbacks of callback functions. They are always asynchronous and one-time, the code is linear and does not have tight coupling, and you don't have to worry about callback hell.
+Promises help to address the drawbacks of callback functions. They are always asynchronous, single-use, and promote more linear code, reducing tight coupling and mitigating callback hell.
 
-But what if a promise gets stuck and is not being fulfilled or rejected? In this case, you can use Promise.race to interrupt the execution of a stuck or very long request by a timeout:
+But what if a promise gets stuck and is not being fulfilled or rejected? In this case, you can use `Promise.race` to interrupt the execution of a stuck or very long request by a timeout:
 
 ```javascript
 Promise.race([
@@ -923,15 +923,14 @@ Promise.race([
 })
 ```
 
-In any case, it's important to understand: despite the many advantages of promises, you will still need to use callback functions in some places, and that's okay. Event handlers and many asynchronous API methods, such as setTimeout, work through them, so in such cases, there's no point in promisifying and it's more convenient to use callback functions. After all, we will also need them to create a promise. The main thing to remember is that if there is a chain of sequential calls somewhere, promises must be used there.
-
+In any case, it's important to understand: despite the many advantages of promises, you will still need to use callback functions in some situations, and that's okay. Event handlers and many asynchronous API methods, such as `setTimeout`, work with callbacks, so in such cases, there's no point in promisifying and it's more convenient to use callback functions. After all, we will also need them to create a promise. The main thing to remember is that if there is a chain of sequential calls somewhere, promises should be used to improve code readability and error handling.
 ### Coroutines
 
 Promises are the foundation for working with asynchrony, but there is a very convenient async/await extension built on top of this foundation, which is implemented thanks to coroutines.
 
 A coroutine (cooperative concurrently executed routine) is a co-program or, in simpler terms, a special function that can pause its work, remember its state, and has multiple entry and exit points.
 
-In JavaScript, generator functions act as coroutines, returning an iterator. The iterator can pause its work, remember its current state, and interact with external code through .next and .throw.
+In JavaScript, generator functions act as coroutines, returning an iterator. The iterator can pause its work, remember its current state, and interact with external code through `.next` and `.throw`.
 
 Thanks to these capabilities of coroutines, you can write a [special function](https://www.promisejs.org/generators/) like this:
 
@@ -964,7 +963,7 @@ This turned out to be so convenient that later, JavaScript added async/await con
 
 This is syntactic sugar implemented through promises and coroutines, which makes working with asynchronous operations more convenient.
 
-The async modifier is placed before a function and makes it asynchronous:
+The `async` modifier is placed before a function and makes it asynchronous:
 
 ```javascript
 async function asyncFunction () {
@@ -978,7 +977,7 @@ function asyncFunction () {
     return Promise.resovle('^_^')
 }
 ```
-The result of an asynchronous function is extracted through then or await:
+The result of an asynchronous function is extracted through `then` or `await`:
 
 ```javascript
 asyncFunction().then((value) => {
@@ -991,11 +990,11 @@ asyncFunction().then((value) => {
 })()
 ```
 
-Await is slightly more convenient than promises, but it has a serious limitation - it can only be called within an asynchronous function. With this, asynchrony becomes "sticky" - once you write an asynchronous call, there's no way back to the synchronous world. For a while, nothing could be done about this, but then top-level await appeared.
+`Await` is slightly more convenient than promises, but it has a serious limitation - it can only be called within an asynchronous function. With this, asynchrony becomes "sticky" - once you write an asynchronous call, there's no way back to the synchronous world. For a while, nothing could be done about this, but then top-level `await` appeared.
 
 ### Top-level await and asynchronous modules
 
-Top-level await allows you to use this operator outside of asynchronous functions:
+Top-level `await` allows you to use this operator outside of asynchronous functions:
 
 ```javascript
 const connection = await dbConnector()
@@ -1003,7 +1002,7 @@ const jQuery = await import('http://cdn.com/jquery')
 ```
 But it can only be used either inside ES6 modules or in DevTools. This limitation is due to the fact that await is syntactic sugar that works through modules.
 
-For example, a module with top-level await looks like this for a developer:
+For example, a module with top-level `await` looks like this for a developer:
 ```javascript
 // module.mjs
 const value =
@@ -1018,9 +1017,10 @@ import {
 
 console.log(value) // ^_^
 ```
-Neither inside the module nor inside the main program are there asynchronous functions, but they are necessary for await to work. So how does this code work?
 
-The fact is that the engine will take on the task of wrapping await in an asynchronous function, so somewhere "under the hood", without syntactic sugar, top-level await will look like this:
+The original code does not contain any asynchronous functions within the module or the main program, yet they are required for `await` to work. So, how does this code function?
+
+The answer lies in the JavaScript engine's ability to handle this task by wrapping the await within an asynchronous function behind the scenes. Without the syntactic sugar, the top-level `await` would appear as follows:
 
 ```javascript
 // module.mjs
@@ -1046,7 +1046,7 @@ No magic. Just syntactic sugar.
 
 ## Error handling
 
-There are two ways to handle errors within asynchronous functions. The first is to add a catch after calling the function, and the second is to wrap the await call in a try/catch block.
+There are two ways to handle errors within asynchronous functions. The first is to add a `catch` after calling the function, and the second is to wrap the await call in a `try/catch` block.
 
 Since asynchronous functions are promises, you can add a catch after the call and handle the error.
 
@@ -1064,7 +1064,7 @@ asyncFunction()
     })
 ```
 
-This method will work, but try/catch is likely to be more suitable because it allows you to handle exceptions directly within the function body:
+This method will work, but `try/catch` is likely to be more suitable because it allows you to handle exceptions directly within the function body:
 
 ```javascript
 async function asyncFunction () {
@@ -1080,7 +1080,7 @@ asyncFunction().then((value) => {
 })
 ```
 
-Another important advantage: unlike catch, the try/catch block can handle top-level await.
+Another important advantage: unlike `catch`, the `try/catch` block can handle top-level `await`.
 
 ### Not all await is equally useful
 
@@ -1095,7 +1095,7 @@ const pictures = await fetchPictures()
 // ... some actions with articles and pictures
 ```
 
-In this case, data that could be fetched in parallel will be requested sequentially. As long as the first part of the data is not fully loaded, work with the second part will not start. Because of this, the task will take longer than it could. Suppose each request takes two seconds; then, it will take four seconds to fully load the data. However, if you load the data in parallel using Promise.all, all the information will load twice as fast:
+In this case, data that could be fetched in parallel will be requested sequentially. As long as the first part of the data is not fully loaded, work with the second part will not start. Because of this, the task will take longer than it could. Suppose each request takes two seconds; then, it will take four seconds to fully load the data. However, if you load the data in parallel using `Promise.all`, all the information will load twice as fast:
 
 ```javascript
 const [articles, pictures] = await Promise.all([
@@ -1107,6 +1107,3 @@ const [articles, pictures] = await Promise.all([
 ## Conclusion
 
 That's everything you probably wanted to know about asynchrony in the browser. I hope you now have a good understanding of how the event loop works, can escape from callback hell, easily work with promises, and skillfully use async/await. If I forgot something, please remind me in the comments.
-
-Used resources:
-- https://stackoverflow.com/questions/11948245/markdown-to-create-pages-and-table-of-contents
