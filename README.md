@@ -719,7 +719,7 @@ awesomeES6Promise.then((value) => {
     console.log(value) // @_@
 })
 ```
-There is one peculiarity: if you pass a regular promise to Promise.resolve, it will not be unwrapped and will be returned unchanged. At the same time, resolve, then, and catch will unwrap the value and create a new promise.
+There is one peculiarity: if you pass a regular promise to `Promise.resolve`, it will not be unwrapped and will be returned unchanged. At the same time, `resolve`, `then`, and `catch` will unwrap the value and create a new promise.
 
 ```javascript
 const thenable = {
@@ -736,7 +736,7 @@ const resolvedPromise = Promise.resolve(promise)
 console.log(thenable === resolvedThenable) // false
 console.log(promise === resolvedPromise) // true
 ```
-But the most interesting part is the behavior of reject and Promise.reject, which work completely differently. If you pass any object to them, including a promise, they will simply return it as the reason for rejection:
+But the most interesting part is the behavior of `reject` and `Promise.reject`, which work completely differently. If you pass any object to them, including a promise, they will simply return it as the reason for rejection:
 
 ```javascript
 const promise = Promise.resolve('@_@')
@@ -749,7 +749,7 @@ Promise.reject(promise)
 
 ### Static methods
 
-Promises have six useful static methods. We have already covered two of them - Promise.resolve and Promise.reject. Let's take a look at the other four.
+Promises have six useful static methods. We have already covered two of them - `Promise.resolve` and `Promise.reject`. Let's take a look at the other four.
 
 For clarity, let's write a function that will help us get a settled promise after a certain time:
 ```javascript
